@@ -37,10 +37,11 @@ class stepper {
       pinMode(pul_pin, OUTPUT);
       pinMode(dir_pin, OUTPUT);
     }
-
+/*
     void loop() {
 
     }
+    */
 };
 
 
@@ -85,12 +86,15 @@ class cmd_buf_class {
       return cmd;
     }
 };
+
 int cmd_buf_class::available() {
   int n = buf_in - buf_out;
   while (n < 0)n += CMD_BUF_SIZE;
   return n;
 }
+
 cmd_buf_class cmd_buf;
+
 bool busy_flag = false;
 bool buf_full_flag = false;
 stepper  motor_w (ENA_1, PUL_1, DIR_1);
@@ -137,24 +141,27 @@ void process_cmd_str(String cmd_str) {
 }
 
 
-
+void motor_loop() {
+  /*
+  motor_w.loop();
+  motor_x.loop();
+  motor_y.loop();
+  motor_z.loop();
+  */
+}
 void loop() {
   serial_loop();
   job_loop();
   motor_loop();
 }
-void motor_loop() {
-  motor_w.loop();
-  motor_x.loop();
-  motor_y.loop();
-  motor_z.loop();
-}
-void G0_function(cmd_class crr_cmd){
-  Serial.println("G0 function");
-  Serial.println("W = "+crr_cmd.param_val("W"));
-  Serial.println("X = "+crr_cmd.param_val("X"));
-  Serial.println("Y = "+crr_cmd.param_val("Y"));
-  Serial.println("Z = "+crr_cmd.param_val("Z"));
+
+
+void G0_function (cmd_class cmd){
+
+  Serial.println("W = "+cmd.param_val("W"));
+  Serial.println("X = "+cmd.param_val("X"));
+  Serial.println("Y = "+cmd.param_val("Y"));
+  Serial.println("Z = "+cmd.param_val("Z"));
   busy_flag = false;
 }
 void job_loop() {
@@ -171,5 +178,3 @@ void job_loop() {
     }
   }
 }
-
-
