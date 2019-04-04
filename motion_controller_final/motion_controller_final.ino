@@ -31,7 +31,7 @@ class stepper {
     float max_acc;
     unsigned long timer = micros();
     unsigned long pulse_period = 4000;
-    uint8_t enable_logic = LOW;
+    uint8_t enable_logic = HIGH;
     stepper(int _ena_pin, int _pul_pin, int _dir_pin) {
       ena_pin = _ena_pin;
       pul_pin = _pul_pin;
@@ -141,11 +141,11 @@ stepper  motor_z(ENA_4, PUL_4, DIR_4);
 void setup() {
 
   Serial.begin(115200);
+  motor_w.pulse_period = 4000;
+  motor_z.pulse_period = 2000;
+  motor_x.pulse_period = 20000;
+  motor_y.pulse_period = 2000;
 
-  motor_z.pulse_period = 4000;
-  motor_x.pulse_period = 50000;
-  motor_y.pulse_period = 1500;
-  motor_y.enable_logic = HIGH;
   motor_w.enable();
   motor_x.enable();
   motor_y.enable();
