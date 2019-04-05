@@ -17,6 +17,8 @@
 #define ENA_4 A0
 #define PUL_4 A1
 #define DIR_4 A2
+#define STATUS_LED_PIN 13
+void port_write( uint8_t pin, uint8_t val) ;
 class stepper {
   private:
     int ena_pin;
@@ -49,32 +51,32 @@ class stepper {
     
     void update() {
       if (goal_pos > crr_pos) {
-        digitalWrite(dir_pin, HIGH);
+        port_write(dir_pin, HIGH);
         if (micros() - timer > pulse_period) {
           timer = micros();
           crr_pos++;
         }
         else if (micros() - timer > pulse_period / 2) {
-          digitalWrite(pul_pin, HIGH);
+          port_write(pul_pin, HIGH);
         }
         else {
-          digitalWrite(pul_pin, LOW);
+          port_write(pul_pin, LOW);
 
         }
       }
       else if (goal_pos < crr_pos) {
-        digitalWrite(dir_pin, LOW);
+        port_write(dir_pin, LOW);
 
         if (micros() - timer > pulse_period) {
           timer = micros();
           crr_pos--;
         }
         else if (micros() - timer > pulse_period / 2) {
-          digitalWrite(pul_pin, HIGH);
+          port_write(pul_pin, HIGH);
 
         }
         else {
-          digitalWrite(pul_pin, LOW);
+          port_write(pul_pin, LOW);
 
         }
       }
@@ -141,8 +143,9 @@ stepper  motor_z(ENA_4, PUL_4, DIR_4);
 void setup() {
 
   Serial.begin(115200);
+  pinMode(STATUS_LED_PIN,OUTPUT);
   motor_w.pulse_period = 4000;
-  motor_z.pulse_period = 2000;
+  motor_z.pulse_period = 1300;
   motor_x.pulse_period = 20000;
   motor_y.pulse_period = 2000;
 
@@ -199,63 +202,21 @@ void motor_loop() {
   motor_z.update();
  
 }
-void G0_function(cmd_class cmd) {
- 
-  
-  String w_str = cmd.param_val("W");
-  String x_str = cmd.param_val("X");
-  String y_str = cmd.param_val("Y");
-  String z_str = cmd.param_val("Z");
-  /*
-    Serial.println("G0 function");
-    Serial.println("W = " + w_str);
-    Serial.println("X = " + x_str);
-    Serial.println("Y = " + y_str);
-    Serial.println("Z = " + z_str);
-  */
-  if (w_str.length() > 0) {
-    motor_w.goal_pos = w_str.toInt();
-  }
-  if (x_str.length() > 0) {
-    motor_x.goal_pos = x_str.toInt();
-  }
-  if (y_str.length() > 0) {
-    motor_y.goal_pos = y_str.toInt();
-  }
-  if (z_str.length() > 0) {
-    motor_z.goal_pos = z_str.toInt();
 
-  }
-  if (motor_w.goal_pos == motor_w.crr_pos && motor_x.goal_pos == motor_x.crr_pos && motor_y.goal_pos == motor_y.crr_pos && motor_z.goal_pos == motor_z.crr_pos) {
-    
-    busy_flag = false;
-  } else {
-    /*
-      Serial.print("motor_w = ");
-      Serial.println(motor_w.crr_pos);
-      Serial.print("motor_x = ");
-      Serial.println(motor_x.crr_pos);
-      Serial.print("motor_y = ");
-      Serial.println(motor_y.crr_pos);
-       Serial.print("motor_z = ");
-      Serial.println(motor_z.crr_pos);
-      */
-      
-  }
-
-}
 void job_loop() {
   static void (*job_fc)(cmd_class);
   static cmd_class crr_cmd;
   if (!busy_flag) {
+    port_write(STATUS_LED_PIN,LOW);
     if (cmd_buf.available() > 0) {
       Serial.println("Read from buffer : ");
       crr_cmd = cmd_buf.read();
-      //Serial.println(crr_cmd.str());
+      //Serial.println(crr_cmd.str()x);
       if (crr_cmd.param(0).equals("G0")) {
         busy_flag = true;
-        job_fc = &G0_function;
-        //G0_function(crr_cmd);
+        port_write(STATUS_LED_PIN,HIGH);
+        job_fc = &G0_loop;
+        G0_init(crr_cmd);
 
       }
     }
