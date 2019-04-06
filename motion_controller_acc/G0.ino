@@ -34,10 +34,10 @@ void G0_init(cmd_class cmd) {
     busy_flag = false;
   }
   motor_w.init_conacc();
-  /*motor_x.init_conacc();
+  motor_x.init_conacc();
   motor_y.init_conacc();
   motor_z.init_conacc();
-  */
+  
 }
 
 void G0_loop(cmd_class cmd) {
@@ -47,11 +47,11 @@ void G0_loop(cmd_class cmd) {
   } else {
 
     motor_w.update_conacc();
-    /*
+    
     motor_x.update_conacc();
     motor_y.update_conacc();
     motor_z.update_conacc();
-    */
+    
   }
 
 }
