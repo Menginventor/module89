@@ -14,39 +14,38 @@ void G0_init(cmd_class cmd) {
   */
   if (w_str.length() > 0) {
     motor_w.goal_pos = w_str.toInt();
+   
+   
   }
   if (x_str.length() > 0) {
     motor_x.goal_pos = x_str.toInt();
+   
   }
   if (y_str.length() > 0) {
     motor_y.goal_pos = y_str.toInt();
+    
   }
   if (z_str.length() > 0) {
     motor_z.goal_pos = z_str.toInt();
-
+   
   }
   if (motor_w.goal_pos == motor_w.crr_pos && motor_x.goal_pos == motor_x.crr_pos && motor_y.goal_pos == motor_y.crr_pos && motor_z.goal_pos == motor_z.crr_pos) {
 
     busy_flag = false;
-  } 
+  }
+  motor_w.relative_crr_pos = 0;
+  motor_x.relative_crr_pos = 0;
+  motor_y.relative_crr_pos = 0;
+  motor_z.relative_crr_pos = 0;
 }
 
 void G0_loop(cmd_class cmd) {
   if (motor_w.goal_pos == motor_w.crr_pos && motor_x.goal_pos == motor_x.crr_pos && motor_y.goal_pos == motor_y.crr_pos && motor_z.goal_pos == motor_z.crr_pos) {
-    
+
     busy_flag = false;
   } else {
-    /*
-      Serial.print("motor_w = ");
-      Serial.println(motor_w.crr_pos);
-      Serial.print("motor_x = ");
-      Serial.println(motor_x.crr_pos);
-      Serial.print("motor_y = ");
-      Serial.println(motor_y.crr_pos);
-       Serial.print("motor_z = ");
-      Serial.println(motor_z.crr_pos);
-      */
-      
+
+
   }
 
 }

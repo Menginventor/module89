@@ -27,11 +27,23 @@ class stepper {
     int dir_pin;
     int motor_stage = 0;
   public:
-    float crr_speed;
+    /*con_acc*/
+    float top_vel;
+    float  c1 ;
+    float c2 ;
+    float t_acc ;
+    float t_dacc ;
+    float t_end;
+    float relative_goal_pos;
+    float relative_crr_pos;
+    bool move_flag = false;
+    /**/
+    float crr_vel;
     long crr_pos;
-    float goal_speed;
+    float goal_vel;
     long goal_pos;
     float max_acc;
+    float max_vel;
     unsigned long timer = micros();
     unsigned long pulse_period = 4000;
     uint8_t enable_logic = HIGH;
@@ -49,40 +61,80 @@ class stepper {
     void disable() {
       digitalWrite(ena_pin, !enable_logic);
     }
+    /*
+        void update() {
+          if (goal_pos > crr_pos) {
+            port_write(dir_pin, HIGH);
+            if (micros() - timer > pulse_period) {
+              timer = micros();
+              crr_pos++;
+            }
+            else if (micros() - timer > pulse_period / 2) {
+              port_write(pul_pin, HIGH);
+            }
+            else {
+              port_write(pul_pin, LOW);
 
-    void update() {
+            }
+          }
+          else if (goal_pos < crr_pos) {
+            port_write(dir_pin, LOW);
+
+            if (micros() - timer > pulse_period) {
+              timer = micros();
+              crr_pos--;
+            }
+            else if (micros() - timer > pulse_period / 2) {
+              port_write(pul_pin, HIGH);
+
+            }
+            else {
+              port_write(pul_pin, LOW);
+
+            }
+          }
+        }
+    */
+    void init_conacc() {
+      relative_goal_pos = abs(float(goal_pos - crr_pos));
+      relative_crr_pos = 0;
+      top_vel = max_vel;
+      c1 = 0.5 * pow(top_vel, 2) / max_acc;
+
+      if (relative_goal_pos < 2 * c1) {
+
+        top_vel = sqrt(relative_goal_pos * max_acc);
+      }
+
+      c1 = 0.5 * pow(top_vel, 2) / max_acc;
+      c2 = relative_goal_pos - 2 * c1;
+      t_acc = top_vel / max_acc;
+      t_dacc = c2 / top_vel + t_acc;
+      t_end = c2 / top_vel + 2 * t_acc;
       if (goal_pos > crr_pos) {
         port_write(dir_pin, HIGH);
-        if (micros() - timer > pulse_period) {
-          timer = micros();
-          crr_pos++;
-        }
-        else if (micros() - timer > pulse_period / 2) {
-          port_write(pul_pin, HIGH);
-        }
-        else {
-          port_write(pul_pin, LOW);
-
-        }
       }
-      else if (goal_pos < crr_pos) {
+      else {
         port_write(dir_pin, LOW);
+      }
+      move_flag = true;;
+    }
+    void update_conacc() {
+      float t = (micros() - timer) / 1000000.0;
 
-        if (micros() - timer > pulse_period) {
-          timer = micros();
-          crr_pos--;
-        }
-        else if (micros() - timer > pulse_period / 2) {
-          port_write(pul_pin, HIGH);
-
-        }
-        else {
-          port_write(pul_pin, LOW);
-
-        }
+      if (t < t_acc) {
+        crr_pos = 0.5 * max_acc * pow(t, 2);
+      }
+      else if (t < t_dacc) {
+        crr_pos = c1 + top_vel * (t - t_acc);
+      }
+      else if (t < t_end) {
+        crr_pos = c1 + c2 + top_vel * (t - t_dacc) - 0.5 * max_acc * pow(t - t_dacc, 2);
+      }
+      else{
+        move_flag = false;
       }
     }
-
 };
 
 
@@ -150,6 +202,16 @@ void setup() {
   motor_x.pulse_period = 20000;
   motor_y.pulse_period = 2000;
 
+  motor_w.max_vel = 1000000.0 /  float(motor_w.pulse_period );
+  motor_z.max_vel =  1000000.0 /  float(motor_z.pulse_period );
+  motor_x.max_vel =  1000000.0 /  float(motor_x.pulse_period );
+  motor_y.max_vel =  1000000.0 /  float(motor_y.pulse_period );
+  //
+  motor_w.max_acc = float(  motor_w.max_vel) / 0.5;
+
+  motor_x.max_acc = float(  motor_x.max_vel) / 0.5;
+  motor_y.max_acc = float(  motor_y.max_vel) / 0.5;
+  motor_z.max_acc = float(  motor_z.max_vel) / 0.5;
   motor_w.enable();
   motor_x.enable();
   motor_y.enable();
@@ -194,15 +256,15 @@ void process_cmd_str(String cmd_str) {
 void loop() {
   serial_loop();
   job_loop();
-  motor_loop();
+  //motor_loop();
 }
 void motor_loop() {
-
-  motor_w.update();
-  motor_x.update();
-  motor_y.update();
-  motor_z.update();
-
+  /*
+    motor_w.update();
+    motor_x.update();
+    motor_y.update();
+    motor_z.update();
+  */
 }
 
 void job_loop() {
@@ -211,7 +273,7 @@ void job_loop() {
   if (!busy_flag) {
     port_write(STATUS_LED_PIN, LOW);
     if (cmd_buf.available() > 0) {
-      Serial.println("Read from buffer : ");
+
       crr_cmd = cmd_buf.read();
 
       if (crr_cmd.param(0).equals("G0")) {
