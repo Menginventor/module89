@@ -209,7 +209,7 @@ void setup() {
   pinMode(STATUS_LED_PIN, OUTPUT);
   motor_w.pulse_period = 4000;
   motor_z.pulse_period = 1000;
-  motor_x.pulse_period = 10000;
+  motor_x.pulse_period = 10000x;
   motor_y.pulse_period = 2000;
 
   motor_w.max_vel = 1000000.0 /  float(motor_w.pulse_period );
