@@ -96,6 +96,7 @@ class stepper {
         }
     */
     void init_conacc() {
+      Serial.println("init_conacc");
       relative_goal_pos = abs(float(goal_pos - crr_pos));
       relative_crr_pos = 0;
       top_vel = max_vel;
@@ -117,23 +118,28 @@ class stepper {
       else {
         port_write(dir_pin, LOW);
       }
-      move_flag = true;;
+      move_flag = true;
+      timer = micros();
     }
     void update_conacc() {
       float t = (micros() - timer) / 1000000.0;
 
       if (t < t_acc) {
-        crr_pos = 0.5 * max_acc * pow(t, 2);
+        relative_crr_pos = 0.5 * max_acc * pow(t, 2);
       }
       else if (t < t_dacc) {
-        crr_pos = c1 + top_vel * (t - t_acc);
+        relative_crr_pos = c1 + top_vel * (t - t_acc);
       }
       else if (t < t_end) {
-        crr_pos = c1 + c2 + top_vel * (t - t_dacc) - 0.5 * max_acc * pow(t - t_dacc, 2);
+        relative_crr_pos = c1 + c2 + top_vel * (t - t_dacc) - 0.5 * max_acc * pow(t - t_dacc, 2);
       }
       else{
         move_flag = false;
       }
+      unsigned long half_step = relative_crr_pos*2.0;
+      Serial.println(half_step);
+      if (half_step%2 == 0)port_write(pul_pin, LOW);
+      else port_write(pul_pin, HIGH);
     }
 };
 
