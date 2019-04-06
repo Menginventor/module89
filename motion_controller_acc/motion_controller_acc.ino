@@ -96,8 +96,11 @@ class stepper {
         }
     */
     void init_conacc() {
-      Serial.println("init_conacc");
+
       relative_goal_pos = abs(float(goal_pos - crr_pos));
+      Serial.println(goal_pos);
+      Serial.println(crr_pos);
+      Serial.println(relative_goal_pos);
       relative_crr_pos = 0;
       top_vel = max_vel;
       c1 = 0.5 * pow(top_vel, 2) / max_acc;
@@ -133,12 +136,13 @@ class stepper {
       else if (t < t_end) {
         relative_crr_pos = c1 + c2 + top_vel * (t - t_dacc) - 0.5 * max_acc * pow(t - t_dacc, 2);
       }
-      else{
+      else {
+        crr_pos = goal_pos ;
         move_flag = false;
       }
-      unsigned long half_step = relative_crr_pos*2.0;
-      Serial.println(half_step);
-      if (half_step%2 == 0)port_write(pul_pin, LOW);
+      unsigned long half_step = relative_crr_pos * 2.0;
+
+      if (half_step % 2 == 0)port_write(pul_pin, LOW);
       else port_write(pul_pin, HIGH);
     }
 };
@@ -204,8 +208,8 @@ void setup() {
   Serial.begin(115200);
   pinMode(STATUS_LED_PIN, OUTPUT);
   motor_w.pulse_period = 4000;
-  motor_z.pulse_period = 1300;
-  motor_x.pulse_period = 20000;
+  motor_z.pulse_period = 1000;
+  motor_x.pulse_period = 10000;
   motor_y.pulse_period = 2000;
 
   motor_w.max_vel = 1000000.0 /  float(motor_w.pulse_period );
@@ -217,7 +221,7 @@ void setup() {
 
   motor_x.max_acc = float(  motor_x.max_vel) / 0.5;
   motor_y.max_acc = float(  motor_y.max_vel) / 0.5;
-  motor_z.max_acc = float(  motor_z.max_vel) / 0.5;
+  motor_z.max_acc = float(  motor_z.max_vel) / 1.0;
   motor_w.enable();
   motor_x.enable();
   motor_y.enable();
