@@ -145,7 +145,7 @@ void setup() {
   Serial.begin(115200);
   pinMode(STATUS_LED_PIN,OUTPUT);
   motor_w.pulse_period = 4000;
-  motor_z.pulse_period = 1300;
+  motor_z.pulse_period = 1500;
   motor_x.pulse_period = 20000;
   motor_y.pulse_period = 2000;
 

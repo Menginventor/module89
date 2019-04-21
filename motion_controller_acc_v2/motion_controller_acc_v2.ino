@@ -37,10 +37,12 @@ class stepper {
     float t_acc ;
     float t_dacc ;
     float t_end;
-    float relative_goal_pos;
-    float relative_crr_pos;
+    unsigned long acc_step;
+    unsigned long  relative_goal_pos;
+    unsigned long  relative_crr_pos;
+    unsigned long  relative_crr_half_step;
     bool move_flag = false;
-    unsigned  actual_step = 0;
+
     /**/
     float crr_vel;
     long crr_pos;
@@ -49,6 +51,7 @@ class stepper {
     float max_acc;
     float max_vel;
     unsigned long timer = micros();
+    unsigned long timer_next = micros();
     unsigned long pulse_period = 4000;
     uint8_t enable_logic = HIGH;
     stepper(int _ena_pin, int _pul_pin, int _dir_pin) {
@@ -64,7 +67,7 @@ class stepper {
       port_write(pul_pin, HIGH);
       pulse_flag = true;
     }
-    void disable() {
+    void disable () {
       digitalWrite(ena_pin, !enable_logic);
     }
     /*
@@ -102,23 +105,19 @@ class stepper {
         }
     */
     void init_conacc() {
-
-      relative_goal_pos = abs(float(goal_pos - crr_pos));
-
+      relative_goal_pos = abs(goal_pos - crr_pos);
       relative_crr_pos = 0;
       top_vel = max_vel;
       c1 = 0.5 * pow(top_vel, 2) / max_acc;
-
       if (relative_goal_pos < 2 * c1) {
-
         top_vel = sqrt(relative_goal_pos * max_acc);
       }
-
       c1 = 0.5 * pow(top_vel, 2) / max_acc;
       c2 = relative_goal_pos - 2 * c1;
       t_acc = top_vel / max_acc;
       t_dacc = c2 / top_vel + t_acc;
       t_end = c2 / top_vel + 2 * t_acc;
+      acc_step = pow(top_vel, 2) / (2.0 * max_acc); //s =( v^2 - u^2) / 2a
       if (goal_pos > crr_pos) {
         port_write(dir_pin, HIGH);
       }
@@ -126,48 +125,59 @@ class stepper {
         port_write(dir_pin, LOW);
       }
       move_flag = true;
-      actual_step = 0;
+
       port_write(pul_pin, HIGH);
       pulse_flag = true;
+      relative_crr_half_step = 0;
       timer = micros();
     }
     void update_conacc() {
-      float t = (micros() - timer) / 1000000.0;
+      if (micros() >= timer) {
 
-      if (t < t_acc) {
-        relative_crr_pos = 0.5 * max_acc * pow(t, 2);
-      }
-      else if (t < t_dacc) {
-        relative_crr_pos = c1 + top_vel * (t - t_acc);
-      }
-      else if (t < t_end) {
-        relative_crr_pos = c1 + c2 + top_vel * (t - t_dacc) - 0.5 * max_acc * pow(t - t_dacc, 2);
-      }
-      else {
-        crr_pos = goal_pos ;
-        
-        if (move_flag) {
-          Serial.print("desire step = ");
-          Serial.println(relative_crr_pos);
-          Serial.print("actual step = ");
-          Serial.println(actual_step);
-           Serial.print("pulse_flag = ");
-          Serial.println(pulse_flag);
-          move_flag = false;
+        if (relative_crr_half_step >= relative_goal_pos * 2) {
+          crr_pos = goal_pos ;
+          if (move_flag) {
+
+            move_flag = false;
+          }
+        }
+        else {
+          if (relative_crr_half_step <= acc_step * 2) {
+            unsigned long next_pulse = (sqrt(float((relative_crr_half_step + 1)) / max_acc) - sqrt(float((relative_crr_half_step)) / max_acc) ) * 1000000.0 ;
+            timer = next_pulse + micros();
+
+          }
+          else if (relative_crr_half_step <= (relative_goal_pos - acc_step) * 2) {
+            unsigned long next_pulse = 1000000.0 / (top_vel * 2.0);
+            timer = micros() + next_pulse;
+
+          }
+          else {
+            //t=(sqrt(u^2+2*a*s)-u)/a
+            float dacc_crr_pos = relative_crr_half_step - (relative_goal_pos - acc_step) * 2 ;
+            float  t2  = (sqrt(pow(top_vel, 2) + 2.0 * (-max_acc) * float(dacc_crr_pos + 1.0) / 2.0) - top_vel) / (-max_acc);
+            float t1  =  (sqrt(pow(top_vel, 2) + 2.0 * (-max_acc) * float(dacc_crr_pos) / 2.0) - top_vel) / (-max_acc);
+            unsigned long next_pulse = (t2 - t1) * 1000000.0;
+            timer = micros() + next_pulse;
+          }
+          relative_crr_half_step ++;
+          if (relative_crr_half_step % 2 == 0) {
+            port_write(pul_pin, LOW);
+            pulse_flag = false;
+
+          }
+          else {
+            port_write(pul_pin, HIGH);
+            pulse_flag = true;
+          }
         }
       }
-      unsigned long half_step =   long(relative_crr_pos * 2.0);
-
-      if (half_step % 2 == 0 && pulse_flag &&actual_step<relative_crr_pos) {
-        port_write(pul_pin, LOW);
-        pulse_flag = false;
-        actual_step++;
-      }
-      else  if (half_step % 2 != 0 && !pulse_flag) {
-        port_write(pul_pin, HIGH);
-        pulse_flag = true;
-      }
     }
+
+
+
+
+
 };
 
 
@@ -232,6 +242,7 @@ void setup() {
   pinMode(STATUS_LED_PIN, OUTPUT);
   motor_w.pulse_period = 4000;
   motor_z.pulse_period = 1500;
+
   motor_x.pulse_period = 10000;
   motor_y.pulse_period = 1500;
 
@@ -244,7 +255,7 @@ void setup() {
 
   motor_x.max_acc = float(  motor_x.max_vel) / 0.5;
   motor_y.max_acc = float(  motor_y.max_vel) / 0.5;
-  motor_z.max_acc = float(  motor_z.max_vel) / 1.0;
+  motor_z.max_acc = float(  motor_z.max_vel) / 2.0;
   motor_w.enable();
   motor_x.enable();
   motor_y.enable();
@@ -263,9 +274,6 @@ void process_cmd_str(String cmd_str) {
     else {
       buf_full_flag = true;
     }
-
-
-
     for (int i = 0; i < crr_cmd.param_available(); i++) {
       Serial.print("param");
       Serial.print(i);
@@ -306,9 +314,7 @@ void job_loop() {
   if (!busy_flag) {
     port_write(STATUS_LED_PIN, LOW);
     if (cmd_buf.available() > 0) {
-
       crr_cmd = cmd_buf.read();
-
       if (crr_cmd.param(0).equals("G0")) {
         busy_flag = true;
         port_write(STATUS_LED_PIN, HIGH);
@@ -323,11 +329,9 @@ void job_loop() {
         G28_init(crr_cmd);
         port_write(STATUS_LED_PIN, HIGH);
         job_fc = &G28_loop;
-
       }
     }
   } else {
-
     job_fc(crr_cmd);
   }
 }
