@@ -1,3 +1,7 @@
+#include <Wire.h>
+#include <ADS1015_async.h>
+
+
 #define SERIAL_TIMEOUT 1000
 #define CMD_MAX_PARAM 6
 #define CMD_BUF_SIZE 4
@@ -17,9 +21,57 @@
 #define ENA_4 A0
 #define PUL_4 A1
 #define DIR_4 A2
+//
+#define SOLENOID_PIN A3
 #define STATUS_LED_PIN 13
 #define ENDSTOP_PIN 3
-#define Z_MAX 19000;
+#define Z_MAX 950//mm
+//
+/*ADC Setup*/
+#define MOTOR_X_ADC 0
+#define MOTOR_Y_ADC 1
+#define MOTOR_W_ADC 2
+#define GRIPPER_ADC 3
+byte I2C_ADS1015 = 0x48;                      // the I2C address of the device
+const byte ADS1015_inputSelect  =  B11110000; // input enable configuration (all 8 input modes enabled)
+unsigned long ADS1015_inputGain = 0x00000000; // set the gain for each input
+byte ADS1015_autoGainAdjust     =  B00000000; // enable/disable Auto Gain Adjust (all 8 enabled)
+ADS1015_async ADS(I2C_ADS1015, ADS1015_inputSelect, ADS1015_autoGainAdjust, ADS1015_inputGain);
+//
+#define W_STEP_PER_DEG ((800.0*2.0)/360.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2
+#define Y_STEP_PER_DEG ((200.0*2*25.0)/360.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2*25
+#define X_STEP_PER_DEG ((1600.0*2)/360.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2
+#define Z_STEP_PER_MM ((400.0/10.0)/2.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2*25
+
+//ADC Calib MAX = 90 GEG , MIN = -90 DEG
+#define ADC_W_MAX 1285.25
+#define ADC_W_MIN 211.52
+#define ADC_X_MAX 1250.79
+#define ADC_X_MIN 148.97
+#define ADC_Y_MAX 1207.00
+#define ADC_Y_MIN 21.36
+/*
+Z-ENDSTOP : 1
+MOTOR-X : 1250.79
+MOTOR-Y : 1207.00
+MOTOR-W : 1285.25
+GRIPPER-SENSOR : -41.15
+OK
+param0 : G0
+param1 : W-90
+param2 : X-90
+param3 : Y-90
+OK
+param0 : M119
+Z-ENDSTOP : 1
+MOTOR-X : 148.97
+MOTOR-Y : 21.36
+MOTOR-W : 211.52
+GRIPPER-SENSOR : -36.91
+
+
+
+*/
 void port_write( uint8_t pin, uint8_t val) ;
 class stepper {
   private:
@@ -29,8 +81,10 @@ class stepper {
     int motor_stage = 0;
     bool pulse_flag;
 
+
   public:
     /*con_acc*/
+    bool dir_inv = false;
     float top_vel;
     float  c1 ;
     float c2 ;
@@ -119,10 +173,10 @@ class stepper {
       t_end = c2 / top_vel + 2 * t_acc;
       acc_step = pow(top_vel, 2) / (2.0 * max_acc); //s =( v^2 - u^2) / 2a
       if (goal_pos > crr_pos) {
-        port_write(dir_pin, HIGH);
+        port_write(dir_pin, 1 ^ dir_inv);
       }
       else {
-        port_write(dir_pin, LOW);
+        port_write(dir_pin, 0 ^ dir_inv);
       }
       move_flag = true;
 
@@ -236,14 +290,19 @@ stepper  motor_x(ENA_2, PUL_2, DIR_2);
 stepper  motor_y(ENA_3, PUL_3, DIR_3);
 stepper  motor_z(ENA_4, PUL_4, DIR_4);
 
+
+
 void setup() {
 
   Serial.begin(115200);
+  Serial.println("System Reset!");
   pinMode(STATUS_LED_PIN, OUTPUT);
   motor_w.pulse_period = 4000;
   motor_z.pulse_period = 1000;
 
   motor_x.pulse_period = 10000;
+  motor_x.dir_inv = true;
+  motor_w.dir_inv = true;
   motor_y.pulse_period = 1500;
 
   motor_w.max_vel = 1000000.0 /  float(motor_w.pulse_period );
@@ -261,7 +320,10 @@ void setup() {
   motor_y.enable();
   motor_z.enable();
   pinMode(ENDSTOP_PIN, INPUT_PULLUP);
+  pinMode(SOLENOID_PIN, OUTPUT);
+  ADC_init();
 }
+
 
 void process_cmd_str(String cmd_str) {
   cmd_class crr_cmd;
@@ -325,11 +387,24 @@ void job_loop() {
         M119();
       }
       else if (crr_cmd.param(0).equals("G28")) {
-        busy_flag = true;
+        
         G28_init(crr_cmd);
-        port_write(STATUS_LED_PIN, HIGH);
+        
         job_fc = &G28_loop;
       }
+      else if (crr_cmd.param(0).equals("M3")) {
+        M3();
+      }
+      else if (crr_cmd.param(0).equals("M4")) {
+        M4();
+      }
+      else if (crr_cmd.param(0).equals("M5")) {//Turn on solenoid
+        M5();
+      }
+      else if (crr_cmd.param(0).equals("M114")) {//Turn on solenoid
+        M114();
+      }
+
     }
   } else {
     job_fc(crr_cmd);

@@ -1,3 +1,7 @@
+#include <Wire.h>
+#include <Adafruit_ADS1015.h>
+
+ 
 #define SERIAL_TIMEOUT 1000
 #define CMD_MAX_PARAM 6
 #define CMD_BUF_SIZE 4
@@ -20,6 +24,12 @@
 #define STATUS_LED_PIN 13
 #define ENDSTOP_PIN 3
 #define Z_MAX 19000;
+//
+#define W_STEP_PER_DEG (800.0*2.0)/360.0// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2
+#define Y_STEP_PER_DEG (200.0*2*25.0)/360.0// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2*25
+#define X_STEP_PER_DEG (1600.0*2)/360.0// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2
+#define Z_STEP_PER_DEG (400.0/10)/2// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2*25
+Adafruit_ADS1115 ads;
 void port_write( uint8_t pin, uint8_t val) ;
 class stepper {
   private:
