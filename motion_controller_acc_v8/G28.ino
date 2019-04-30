@@ -1,29 +1,29 @@
 void G28_X() {
   float val = 0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < ADC_SAMPLE; i++) {
     val += read_ADC(MOTOR_X_ADC);
   }
-  val = val / 100;
+  val = val / ADC_SAMPLE;
 
   motor_x.crr_pos = float_map(val, ADC_X_MAX, ADC_X_MIN, 90, -90) * X_STEP_PER_DEG;
   motor_x.goal_pos =  motor_x.crr_pos ;
 }
 void G28_Y() {
   float val = 0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < ADC_SAMPLE; i++) {
     val += read_ADC(MOTOR_Y_ADC);
   }
-  val = val / 100;
+  val = val / ADC_SAMPLE;
 
   motor_y.crr_pos = float_map(val, ADC_Y_MAX, ADC_Y_MIN, 90, -90) * Y_STEP_PER_DEG;
   motor_y.goal_pos =  motor_y.crr_pos ;
 }
 void G28_W() {
   float val = 0;
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < ADC_SAMPLE; i++) {
     val += read_ADC(MOTOR_W_ADC);
   }
-  val = val / 100;
+  val = val / ADC_SAMPLE;
 
   motor_w.crr_pos = float_map(val, ADC_W_MAX, ADC_W_MIN, 90, -90) * W_STEP_PER_DEG;
   motor_w.goal_pos =  motor_w.crr_pos ;

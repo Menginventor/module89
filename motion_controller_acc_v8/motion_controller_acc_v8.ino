@@ -1,6 +1,6 @@
 #include <Wire.h>
 #include <ADS1015_async.h>
-
+#include <MemoryFree.h>
 
 #define SERIAL_TIMEOUT 1000
 #define CMD_MAX_PARAM 6
@@ -50,6 +50,7 @@ ADS1015_async ADS(I2C_ADS1015, ADS1015_inputSelect, ADS1015_autoGainAdjust, ADS1
 #define ADC_X_MIN 148.97
 #define ADC_Y_MAX 1207.00
 #define ADC_Y_MIN 21.36
+#define ADC_SAMPLE 128.0
 /*
   Z-ENDSTOP : 1
   MOTOR-X : 1250.79
