@@ -39,11 +39,11 @@ void G28_Z() {
 }
 void G28_init(cmd_class& cmd) {
 
-/*
-  String w_str = cmd.param_val('W');
-  String x_str = cmd.param_val('X');
-  String y_str = cmd.param_val('Y');
-  String z_str = cmd.param_val('Z');
+  /*
+    String w_str = cmd.param_val('W');
+    String x_str = cmd.param_val('X');
+    String y_str = cmd.param_val('Y');
+    String z_str = cmd.param_val('Z');
   */
   /*
     Serial.println("G0 function");
@@ -57,7 +57,7 @@ void G28_init(cmd_class& cmd) {
   bool HOME_Z = cmd.ins_available('Z');
   bool HOME_W = cmd.ins_available('W');
   /*
-  for (int i = 0; i < cmd.param_available(); i++) {
+    for (int i = 0; i < cmd.param_available(); i++) {
 
     if (cmd.param(i).ins == 'X') {
       HOME_X = true;
@@ -72,7 +72,7 @@ void G28_init(cmd_class& cmd) {
     else if (cmd.param(i).ins == 'W') {
       HOME_W = true;
     }
-  }
+    }
   */
   if (!HOME_X && !HOME_Y && !HOME_Z && !HOME_W ) {
     Serial.println("Home All");
@@ -106,28 +106,32 @@ void G28_init(cmd_class& cmd) {
 
 
 
-  motor_w.init_conacc();
-  motor_x.init_conacc();
-  motor_y.init_conacc();
+  /*
+    motor_w.init_conacc();
+    motor_x.init_conacc();
+    motor_y.init_conacc();
+  */
   motor_z.init_conacc();
-  Serial.println("Homing");
+  //Serial.println("Homing");
 }
 
 void G28_loop(cmd_class &cmd) {
   //Serial.println("G28 loop");
   if (motor_w.goal_pos == motor_w.crr_pos && motor_x.goal_pos == motor_x.crr_pos && motor_y.goal_pos == motor_y.crr_pos && motor_z.goal_pos == motor_z.crr_pos) {
     busy_flag = false;
+    Serial.println("ERR,HOMING");
   } else {
-    
+    /*
         motor_w.update_conacc();
         motor_x.update_conacc();
         motor_y.update_conacc();
-    
+    */
 
     motor_z.update_conacc();
     if (digitalRead(ENDSTOP_PIN) == HIGH) {
       Serial.println("Homing complete!");
       busy_flag = false;
+      
       motor_z.goal_pos = Z_MAX * Z_STEP_PER_MM;
       motor_z.crr_pos = Z_MAX * Z_STEP_PER_MM;
       Serial.print("CRR-Z = ");
