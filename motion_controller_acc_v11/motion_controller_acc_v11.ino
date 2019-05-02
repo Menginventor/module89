@@ -294,13 +294,16 @@ class param_class {
 class cmd_class {
 
   private:
-    String cmd_str = "";
-    //String cmd_ins = "";
+    String cmd_str;
+
     param_class cmd_param[CMD_MAX_PARAM];
     bool err_flag = false;
     int param_num = 0;
 
   public:
+  cmd_class(){
+     cmd_str.reserve(24);
+  }
     int param_available();
     param_class param(uint8_t n);
     void set_cmd(String _cmd_str);
@@ -326,7 +329,8 @@ class cmd_class {
         Serial.print(cmd_param[i].ins);
         if (cmd_param[i].val_available) {
           Serial.print(F(" "));
-          Serial.println(cmd_param[i].float_val);
+          if(i == 1)Serial.println(cmd_param[i].int_val);
+          else Serial.println(cmd_param[i].float_val);
         }
         else {
           Serial.println();
@@ -420,6 +424,7 @@ void put_cmd_buf(String cmd_str) {
 
   } else {
     Serial.println(F("ERR"));
+    
   }
 }
 
@@ -437,12 +442,12 @@ void loop() {
 
 void job_loop() {
 
-  static cmd_class crr_cmd;
+
 
   port_write(STATUS_LED_PIN, LOW);
   if (cmd_buf.available() > 0) {
     //Serial.println(F("Read from buffer"));
-    crr_cmd = cmd_buf.read();
+    cmd_class crr_cmd = cmd_buf.read();
 
     if (crr_cmd.param(0).equal_param('G', 0))  {
       busy_flag = true;
@@ -479,6 +484,7 @@ void job_loop() {
     }
     else{
       Serial.println(F("ERR,Unknow CMD"));
+      crr_cmd.print();
     }
     Serial.println(F("READY"));
 

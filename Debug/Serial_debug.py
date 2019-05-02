@@ -74,7 +74,7 @@ while not arduino_rst_flag:
         pos = 5
     else:
         pos = 0
-    serial_port.write(('G1 X'+str(pos)+'Y'+str(pos)+'W'+str(pos)+'F20\r\n').encode())
+    serial_port.write(('G0 X'+str(pos)+'Y'+str(pos)+'W'+str(pos)+'F20\r\n').encode())
     line = ''
     start_time = time.time()
     while not arduino_rst_flag:

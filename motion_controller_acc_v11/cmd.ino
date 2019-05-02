@@ -24,7 +24,8 @@ void cmd_class::set_cmd(String _cmd_str) {
   bool numeric_point_flag = false;//allow one '.' in numeric value.
   //Serial.println(F("set_cmd"));
   //Serial.println(cmd_str);
-  String str_hold = "";
+  String str_hold;
+   str_hold.reserve(24);
   for (int i = 0; i < _cmd_str.length(); i++) {
     char ch = _cmd_str.charAt(i);
 
