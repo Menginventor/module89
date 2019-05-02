@@ -13,7 +13,7 @@ import numpy as np
 import random
 import collections
 serial_port =  serial.Serial()
-
+serial_done_flag = False
 class Serial_RX(QtCore.QThread):
     Serial_signal = pyqtSignal()
 
@@ -36,17 +36,23 @@ class Serial_RX(QtCore.QThread):
                     if serial_port.inWaiting()>0:
 
                         #print(delta_time)
-                        bytesToRead = serial_port.inWaiting()
-                        data = serial_port.read(bytesToRead)
+                        #bytesToRead = serial_port.inWaiting()
+                        #data = serial_port.read(bytesToRead)
+                        line = serial_port.readline().decode("utf-8")
+
+
                         self.serial_buffer = ''
 
                         #if self.mode == 'ASCII':
 
-                        self.serial_buffer += data.decode("utf-8")
+                        self.serial_buffer += line
 
 
                         self.serial_display = self.serial_buffer
                         data_to_update = True
+                        if line.replace('\r\n','') == 'DONE':
+                            global serial_done_flag
+                            serial_done_flag = True
 
                 except Exception as e:
                     print('read error',e)
@@ -63,10 +69,37 @@ class Serial_TX(QtCore.QThread):
     def __del__(self):
         self.wait()
     def run(self):
+        global serial_done_flag
+        serial_done_flag = False
         try:
             serial_port.write(self.data_to_send.encode())
         except:
             print('send error')
+        while True:
+
+            if serial_done_flag:
+                break
+        print('Complete')
+class GCODE_sender(QtCore.QThread):
+    GCODE_list = []
+    def __init__(self,GCODE_list):
+        QtCore.QThread.__init__(self)
+        self.GCODE_list = GCODE_list
+    def __del__(self):
+        self.wait()
+    def run(self):
+        for GCODE in GCODE_list:
+            global serial_done_flag
+            serial_done_flag = False
+            try:
+                serial_port.write(self.GCODE.encode())
+            except:
+                print('send error')
+            while True:
+
+                if serial_done_flag:
+                    break
+            print('Complete')
 class main_widget(QWidget):
     x_plt_arr =  np.array([])
     y_plt_arr = np.array([])
@@ -115,9 +148,9 @@ class main_widget(QWidget):
         self.Serial_log.verticalScrollBar().setValue(self.Serial_log.verticalScrollBar().maximum())
 
     def serial_log_clear(self):
+        print('clear log')
         self.Serial_log.setPlainText('')
-        self.x_plt_arr = np.array([])
-        self.y_plt_arr = np.array([])
+
     def connection_update(self):
         Serial_Open = serial_port.is_open
         print("Serial Open = ",Serial_Open)
@@ -212,12 +245,15 @@ class main_widget(QWidget):
 
         ################################
         Hlayout_2 = QHBoxLayout(self)
+
+        clear_log_button = QPushButton('Clear', self)
+        clear_log_button.clicked.connect(self.serial_log_clear)
         l3 = QLabel()
         l3.setText('Line ending')
         self.CR = QCheckBox("<CR>")
         self.NL = QCheckBox("<NL>")
         H_Spacer2 = QSpacerItem(150, 10, QSizePolicy.Expanding)
-
+        Hlayout_2.addWidget(clear_log_button)
         Hlayout_2.addWidget(l3)
         Hlayout_2.addWidget(self.CR)
         Hlayout_2.addWidget(self.NL)
@@ -227,6 +263,24 @@ class main_widget(QWidget):
         Sending_console_widget.setLayout(Vlayout)
         return Sending_console_widget
     def warehouse(self):
+        Vlayout = QVBoxLayout(self)
+
+        self.Manual_input_groupBox = QGroupBox("Manual Put-In")
+        layout = QFormLayout()
+        self.putInName = QLineEdit()
+        self.putInRoom = QLineEdit()
+        self.putInBoxSize = QComboBox()
+        self.putInBoxSize.addItems(['Big','Small'])
+        layout.addRow(QLabel("Name:"),self.putInName )
+        layout.addRow(QLabel("Room number:"), self.putInRoom)
+        layout.addRow(QLabel("Size:"), self.putInBoxSize)
+        self.Manual_input_groupBox.setLayout(layout)
+        Manual_Output_groupBox = QGroupBox("Manual Output")
+        Vlayout.addWidget( self.Manual_input_groupBox)
+        Vlayout.addWidget(Manual_Output_groupBox)
+        warehouse_widget = QWidget()
+        warehouse_widget.setLayout(Vlayout)
+        return warehouse_widget
 
     def setupUI(self):
 
@@ -249,7 +303,7 @@ class main_widget(QWidget):
         serial_monitor_tab_Vlayout.addWidget(self.Serial_log)
         serial_monitor_tab_Vlayout.addWidget(self.Sending_console())
         serial_monitor_tab.setLayout(serial_monitor_tab_Vlayout)
-        warehouse_tab = QWidget()
+        warehouse_tab = self.warehouse()
         self.main_tab.addTab(serial_monitor_tab, "serial_monitor_tab")
 
         self.main_tab.addTab(warehouse_tab, "warehouse_tab")
