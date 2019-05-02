@@ -22,8 +22,8 @@ void cmd_class::set_cmd(String _cmd_str) {
   int param_count = -1;
 
   bool numeric_point_flag = false;//allow one '.' in numeric value.
-  Serial.println(F("set_cmd"));
-  Serial.println(cmd_str);
+  //Serial.println(F("set_cmd"));
+  //Serial.println(cmd_str);
   String str_hold = "";
   for (int i = 0; i < _cmd_str.length(); i++) {
     char ch = _cmd_str.charAt(i);
@@ -61,7 +61,7 @@ void cmd_class::set_cmd(String _cmd_str) {
 
 
   param_num = param_count + 1;
-  print();
+
 }
 bool cmd_class::isValid() {
   return !err_flag;

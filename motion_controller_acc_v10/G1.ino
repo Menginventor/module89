@@ -1,4 +1,4 @@
-void G0(cmd_class& cmd) {
+void G1(cmd_class& cmd) {
 
   /*
     Serial.println("G0 function");
@@ -42,13 +42,8 @@ void G0(cmd_class& cmd) {
     }
     else Serial.println(F("ERR,Z LIMIT"));
   }
-  if (motor_w.goal_pos == motor_w.crr_pos && motor_x.goal_pos == motor_x.crr_pos && motor_y.goal_pos == motor_y.crr_pos && motor_z.goal_pos == motor_z.crr_pos) {
-    busy_flag = false;
-  }
-  motor_w.init_conacc();
-  motor_x.init_conacc();
-  motor_y.init_conacc();
-  motor_z.init_conacc();
+ 
+  
   while (true) {
     if (motor_w.goal_pos == motor_w.crr_pos && motor_x.goal_pos == motor_x.crr_pos && motor_y.goal_pos == motor_y.crr_pos && motor_z.goal_pos == motor_z.crr_pos) {
 

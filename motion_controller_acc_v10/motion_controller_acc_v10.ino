@@ -1,5 +1,4 @@
-#include <Wire.h>
-#include <ADS1015_async.h>
+
 #include <MemoryFree.h>
 
 #define SERIAL_TIMEOUT 1000
@@ -25,39 +24,46 @@
 #define SOLENOID_PIN A3
 #define STATUS_LED_PIN 13
 #define ENDSTOP_PIN 3
+#define HOMING_LIMIT_PIN A4
 #define Z_MAX 950//mm
 //
 /*ADC Setup*/
-#define MOTOR_X_ADC 0
-#define MOTOR_Y_ADC 1
-#define MOTOR_W_ADC 2
-#define GRIPPER_ADC 3
-byte I2C_ADS1015 = 0x48;                      // the I2C address of the device
-const byte ADS1015_inputSelect  =  B11110000; // input enable configuration (all 8 input modes enabled)
-unsigned long ADS1015_inputGain = 0x00000000; // set the gain for each input
-byte ADS1015_autoGainAdjust     =  B00000000; // enable/disable Auto Gain Adjust (all 8 enabled)
-ADS1015_async ADS(I2C_ADS1015, ADS1015_inputSelect, ADS1015_autoGainAdjust, ADS1015_inputGain);
+
+
 //
 #define W_STEP_PER_DEG ((800.0*2.0)/360.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2
 #define Y_STEP_PER_DEG ((200.0*2*25.0)/360.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2*25
 #define X_STEP_PER_DEG ((1600.0*3)/360.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2
 #define Z_STEP_PER_MM ((400.0/10.0)/2.0)// Drive 800 Steps per Refolution , Redution ratio (Out/In) = 2*25
-#define W_MAX 100
-#define W_MIN -100
-#define X_MAX 100
-#define X_MIN -100
-#define Y_MAX 100
-#define Y_MIN -100
+#define W_MAX 130
+#define W_MIN -130
+#define X_MAX 120
+#define X_MIN -120
+#define Y_MAX 130
+#define Y_MIN -130
 #define Z_MAX 950
-#define Z_MIN 0
+#define Z_MIN -20
+#define W_MAX_VEL 90//Deg/sec
+#define X_MAX_VEL 60//Deg/sec
+#define Y_MAX_VEL 60//Deg/sec
+#define Z_MAX_VEL 40//mm/sec
+//
+//Homing
+#define W_HOMING_VEL 10
+#define X_HOMING_VEL 10
+#define Y_HOMING_VEL 20
+//
+#define W_HOMING_POS (-120+9)
+#define X_HOMING_POS (120-2)
+#define Y_HOMING_POS (-130-1)
+//
+#define POSITIVE_DIR 1
+#define NEGATIVE_DIR 0
+#define W_HOMING_DIR NEGATIVE_DIR
+#define X_HOMING_DIR POSITIVE_DIR
+#define Y_HOMING_DIR NEGATIVE_DIR
 //ADC Calib MAX = 90 GEG , MIN = -90 DEG
-#define ADC_W_MAX 1285.25
-#define ADC_W_MIN 211.52
-#define ADC_X_MAX 1250.79
-#define ADC_X_MIN 148.97
-#define ADC_Y_MAX 1207.00
-#define ADC_Y_MIN 21.36
-#define ADC_SAMPLE 128.0
+
 /*
   Z-ENDSTOP : 1
   MOTOR-X : 1250.79
@@ -82,7 +88,7 @@ ADS1015_async ADS(I2C_ADS1015, ADS1015_inputSelect, ADS1015_autoGainAdjust, ADS1
 */
 void port_write( uint8_t pin, uint8_t val) ;
 class stepper {
-  private:
+   public:
     int ena_pin;
     int pul_pin;
     int dir_pin;
@@ -90,7 +96,7 @@ class stepper {
     bool pulse_flag;
 
 
-  public:
+
     /*con_acc*/
     bool dir_inv = false;
     float top_vel;
@@ -284,19 +290,19 @@ class cmd_class {
     }
     param_class find_param(char _ins) ;
 
-    void print(){
+    void print() {
       Serial.println(F("Print cmd"));
       Serial.print(param_num);
       Serial.println(F(" params"));
-      for(int i = 0;i<param_num;i++){
-         Serial.print(cmd_param[i].ins);
-         if(cmd_param[i].val_available){
+      for (int i = 0; i < param_num; i++) {
+        Serial.print(cmd_param[i].ins);
+        if (cmd_param[i].val_available) {
           Serial.print(" ");
           Serial.println(cmd_param[i].float_val);
-         }
-         else{
-           Serial.println();
-         }
+        }
+        else {
+          Serial.println();
+        }
       }
     }
 };
@@ -350,23 +356,24 @@ void setup() {
   motor_w.dir_inv = true;
   motor_y.pulse_period = 1500;
 
-  motor_w.max_vel = 1000000.0 /  float(motor_w.pulse_period );
-  motor_z.max_vel =  1000000.0 /  float(motor_z.pulse_period );
-  motor_x.max_vel =  1000000.0 /  float(motor_x.pulse_period );
-  motor_y.max_vel =  1000000.0 /  float(motor_y.pulse_period );
+  motor_w.max_vel =   W_MAX_VEL * W_STEP_PER_DEG;
+  motor_z.max_vel =   Z_MAX_VEL * Z_STEP_PER_MM;
+  motor_x.max_vel =   X_MAX_VEL * X_STEP_PER_DEG;
+  motor_y.max_vel =   Y_MAX_VEL * Y_STEP_PER_DEG;
   //
   motor_w.max_acc = float(  motor_w.max_vel) / 0.5;
 
   motor_x.max_acc = float(  motor_x.max_vel) / 1.0;
   motor_y.max_acc = float(  motor_y.max_vel) / 0.5;
-  motor_z.max_acc = float(  motor_z.max_vel) / 1.0;
+  motor_z.max_acc = float(  motor_z.max_vel) / 2.0;
   motor_w.enable();
   motor_x.enable();
   motor_y.enable();
   motor_z.enable();
   pinMode(ENDSTOP_PIN, INPUT_PULLUP);
+  pinMode(HOMING_LIMIT_PIN, INPUT_PULLUP);
   pinMode(SOLENOID_PIN, OUTPUT);
-  ADC_init();
+
 }
 
 
@@ -381,7 +388,7 @@ void put_cmd_buf(String cmd_str) {
     else {
       buf_full_flag = true;
     }
-    
+
   } else {
     Serial.println("ERR");
   }
@@ -392,31 +399,24 @@ void put_cmd_buf(String cmd_str) {
 void loop() {
   serial_loop();
   job_loop();
- 
-}
-void motor_loop() {
-  /*
-    motor_w.update();
-    motor_x.update();
-    motor_y.update();
-    motor_z.update();
-  */
+
 }
 
+
 void job_loop() {
-  static void (*job_fc)(cmd_class&);
+  
   static cmd_class crr_cmd;
   if (!busy_flag) {
     port_write(STATUS_LED_PIN, LOW);
     if (cmd_buf.available() > 0) {
-      Serial.println(F("Read from buffer"));
+      //Serial.println(F("Read from buffer"));
       crr_cmd = cmd_buf.read();
 
       if (crr_cmd.param(0).equal_param('G', 0))  {
         busy_flag = true;
         port_write(STATUS_LED_PIN, HIGH);
-        job_fc = &G0_loop;
-        G0_init(crr_cmd);
+        
+        G0(crr_cmd);
       }
       else if (crr_cmd.param(0).equal_param('M', 119))  {
         M119();
@@ -425,7 +425,7 @@ void job_loop() {
         port_write(STATUS_LED_PIN, HIGH);
         G28_init(crr_cmd);
 
-        job_fc = &G28_loop;
+
       }
       else if (crr_cmd.param(0).equal_param('M', 3))  {
         M3();
@@ -441,7 +441,5 @@ void job_loop() {
       }
 
     }
-  } else {
-    job_fc(crr_cmd);
-  }
+  } 
 }
