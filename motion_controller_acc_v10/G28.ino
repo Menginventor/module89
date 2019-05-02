@@ -1,6 +1,7 @@
 void G28_X() {
   Serial.println(F("HOME-X"));
   port_write(motor_x.dir_pin, X_HOMING_DIR ^ motor_x.dir_inv);
+  port_write(motor_x.pul_pin, HIGH);
   while (digitalRead(HOMING_LIMIT_PIN) == HIGH) {
     port_write(motor_x.pul_pin, LOW);
     delayMicroseconds(1000000.0f / ( X_HOMING_VEL * X_STEP_PER_DEG));
@@ -18,6 +19,7 @@ void G28_X() {
 void G28_Y() {
   Serial.println(F("HOME-Y"));
   port_write(motor_y.dir_pin, Y_HOMING_DIR ^ motor_y.dir_inv);
+  port_write(motor_y.pul_pin, HIGH);
   while (digitalRead(HOMING_LIMIT_PIN) == HIGH) {
     port_write(motor_y.pul_pin, LOW);
     delayMicroseconds(1000000.0f / ( Y_HOMING_VEL * Y_STEP_PER_DEG));
@@ -35,6 +37,7 @@ void G28_Y() {
 void G28_W() {
   Serial.println(F("HOME-W"));
   port_write(motor_w.dir_pin, W_HOMING_DIR ^ motor_w.dir_inv);
+  port_write(motor_w.pul_pin, HIGH);
   while (digitalRead(HOMING_LIMIT_PIN) == HIGH) {
     port_write(motor_w.pul_pin, LOW);
     delayMicroseconds(1000000.0f / ( W_HOMING_VEL * W_STEP_PER_DEG));
@@ -55,7 +58,7 @@ void G28_Z() {
   Serial.println(F("HOME-Z"));
   port_write(STATUS_LED_PIN, HIGH);
   motor_z.crr_pos = 0;
-  motor_z.goal_pos = (Z_MAX+100) * Z_STEP_PER_MM;
+  motor_z.goal_pos = (Z_MAX + 100) * Z_STEP_PER_MM;
   motor_z.init_conacc();
   while (motor_z.goal_pos != motor_z.crr_pos) {
     motor_z.update_conacc();
@@ -125,11 +128,11 @@ void G28_init(cmd_class& cmd) {
   }
   else {
     if (HOME_Z) {
-   
+
       G28_Z();
     }
     if (HOME_W) {
-  
+
       G28_W();
     }
 
@@ -138,7 +141,7 @@ void G28_init(cmd_class& cmd) {
       G28_Y();
     }
     if (HOME_X) {
-     
+
       G28_X();
     }
 
@@ -153,6 +156,6 @@ void G28_init(cmd_class& cmd) {
     motor_x.init_conacc();
     motor_y.init_conacc();
   */
-  
+
   Serial.println("DONE");
 }

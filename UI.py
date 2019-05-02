@@ -19,7 +19,7 @@ class Serial_RX(QtCore.QThread):
 
     serial_display = ''
     serial_buffer = ''
-    timer = time.clock()
+
     def __init__(self,parent):
         QtCore.QThread.__init__(self)
         self.parent = parent
@@ -226,6 +226,8 @@ class main_widget(QWidget):
         Sending_console_widget = QWidget()
         Sending_console_widget.setLayout(Vlayout)
         return Sending_console_widget
+    def warehouse(self):
+
     def setupUI(self):
 
         main_Vlayout = QVBoxLayout(self)
@@ -240,11 +242,21 @@ class main_widget(QWidget):
 
         self.Serial_log.setReadOnly(True)
 
-        main_Vlayout.addWidget(self.Serial_log)
+        self.main_tab = QTabWidget()
+        serial_monitor_tab = QWidget()
 
-        ################################
+        serial_monitor_tab_Vlayout = QVBoxLayout(self)
+        serial_monitor_tab_Vlayout.addWidget(self.Serial_log)
+        serial_monitor_tab_Vlayout.addWidget(self.Sending_console())
+        serial_monitor_tab.setLayout(serial_monitor_tab_Vlayout)
+        warehouse_tab = QWidget()
+        self.main_tab.addTab(serial_monitor_tab, "serial_monitor_tab")
 
-        main_Vlayout.addWidget(self.Sending_console())
+        self.main_tab.addTab(warehouse_tab, "warehouse_tab")
+
+        main_Vlayout.addWidget(self.main_tab)
+
+
 
         ################################
         self.connection_update()

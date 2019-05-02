@@ -88,7 +88,7 @@
 */
 void port_write( uint8_t pin, uint8_t val) ;
 class stepper {
-   public:
+  public:
     int ena_pin;
     int pul_pin;
     int dir_pin;
@@ -112,7 +112,7 @@ class stepper {
     bool move_flag = false;
 
     /**/
-    float crr_vel;
+    float crr_vel;//for g1
     long crr_pos;
     float goal_vel;
     long goal_pos;
@@ -172,6 +172,40 @@ class stepper {
           }
         }
     */
+    void init_convel() {
+      relative_goal_pos = abs(goal_pos - crr_pos);
+      relative_crr_pos = 0;
+
+      if (goal_pos > crr_pos) {
+        port_write(dir_pin, 1 ^ dir_inv);
+      }
+      else {
+        port_write(dir_pin, 0 ^ dir_inv);
+      }
+
+
+      port_write(pul_pin, HIGH);
+
+      timer = micros();
+      pulse_flag = true;
+    }
+    void update_convel() {
+      if (relative_goal_pos != relative_crr_pos) {
+        unsigned long pulse_period = 500000.0f / crr_vel;
+        if ( micros() - timer >= pulse_period) {
+          timer = micros();
+          pulse_flag = !pulse_flag;
+          port_write(pul_pin, pulse_flag);
+          if (!pulse_flag) {
+            relative_crr_pos++;
+          }
+        }
+        
+      }
+      else{
+        crr_pos = goal_pos;
+      }
+    }
     void init_conacc() {
       relative_goal_pos = abs(goal_pos - crr_pos);
       relative_crr_pos = 0;
@@ -241,11 +275,6 @@ class stepper {
         }
       }
     }
-
-
-
-
-
 };
 
 class param_class {
@@ -404,7 +433,7 @@ void loop() {
 
 
 void job_loop() {
-  
+
   static cmd_class crr_cmd;
   if (!busy_flag) {
     port_write(STATUS_LED_PIN, LOW);
@@ -415,8 +444,14 @@ void job_loop() {
       if (crr_cmd.param(0).equal_param('G', 0))  {
         busy_flag = true;
         port_write(STATUS_LED_PIN, HIGH);
-        
+
         G0(crr_cmd);
+      }
+      else if (crr_cmd.param(0).equal_param('G', 1))  {
+        busy_flag = true;
+        port_write(STATUS_LED_PIN, HIGH);
+
+        G1(crr_cmd);
       }
       else if (crr_cmd.param(0).equal_param('M', 119))  {
         M119();
@@ -441,5 +476,5 @@ void job_loop() {
       }
 
     }
-  } 
+  }
 }
