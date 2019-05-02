@@ -11,10 +11,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Serial_debug.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Serial_debug.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Serial_debug.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="25">
+            <state relative-caret-position="-94">
               <caret line="76" column="26" lean-forward="false" selection-start-line="76" selection-start-column="26" selection-end-line="76" selection-end-column="26" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
@@ -23,25 +23,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Serial_monitor.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Meng_Serial-Monitor/Source/Serial_monitor.py">
+      <file leaf-file-name="example1.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/../../../py_stl/example1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="125">
-              <caret line="59" column="52" lean-forward="false" selection-start-line="59" selection-start-column="27" selection-end-line="59" selection-end-column="52" />
+            <state relative-caret-position="250">
+              <caret line="16" column="0" lean-forward="true" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
               <folding>
-                <element signature="e#0#29#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Serial_test.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../Meng_Serial-Monitor/Source/Serial_test.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="244">
-              <caret line="50" column="24" lean-forward="true" selection-start-line="49" selection-start-column="4" selection-end-line="51" selection-end-column="44" />
-              <folding>
-                <element signature="e#0#13#0" expanded="true" />
+                <element signature="e#0#20#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -66,6 +54,7 @@
       <list>
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/Serial_debug.py" />
+        <option value="$PROJECT_DIR$/../../../py_stl/example1.py" />
       </list>
     </option>
   </component>
@@ -97,6 +86,10 @@
               <item name="Debug" type="b2602c69:ProjectViewProjectNode" />
               <item name="Debug" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="Debug" type="b2602c69:ProjectViewProjectNode" />
+              <item name="py_stl" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -106,7 +99,12 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="settings.editor.selected.configurable" value="configurable.group.tools" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\USER\Documents\py_stl" />
+    </key>
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -120,7 +118,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.Serial_debug">
+  <component name="RunManager" selected="Python.example1">
     <configuration name="Serial_debug" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -155,6 +153,23 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
     </configuration>
+    <configuration name="example1" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../../py_stl" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="py_stl" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/../../../py_stl/example1.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+    </configuration>
     <configuration name="test" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -172,16 +187,18 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
     </configuration>
-    <list size="3">
+    <list size="4">
       <item index="0" class="java.lang.String" itemvalue="Python.Serial_test" />
       <item index="1" class="java.lang.String" itemvalue="Python.Serial_debug" />
       <item index="2" class="java.lang.String" itemvalue="Python.test" />
+      <item index="3" class="java.lang.String" itemvalue="Python.example1" />
     </list>
     <recent_temporary>
-      <list size="3">
-        <item index="0" class="java.lang.String" itemvalue="Python.Serial_debug" />
-        <item index="1" class="java.lang.String" itemvalue="Python.test" />
-        <item index="2" class="java.lang.String" itemvalue="Python.Serial_test" />
+      <list size="4">
+        <item index="0" class="java.lang.String" itemvalue="Python.example1" />
+        <item index="1" class="java.lang.String" itemvalue="Python.Serial_debug" />
+        <item index="2" class="java.lang.String" itemvalue="Python.test" />
+        <item index="3" class="java.lang.String" itemvalue="Python.Serial_test" />
       </list>
     </recent_temporary>
   </component>
@@ -240,7 +257,7 @@
     <entry file="file://$PROJECT_DIR$/../../Meng_Serial-Monitor/Source/Serial_test.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="244">
-          <caret line="50" column="24" lean-forward="true" selection-start-line="49" selection-start-column="4" selection-end-line="51" selection-end-column="44" />
+          <caret line="50" column="24" lean-forward="false" selection-start-line="49" selection-start-column="4" selection-end-line="51" selection-end-column="44" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
@@ -259,10 +276,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Serial_debug.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="25">
+        <state relative-caret-position="-94">
           <caret line="76" column="26" lean-forward="false" selection-start-line="76" selection-start-column="26" selection-end-line="76" selection-end-column="26" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/../../../py_stl/example1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="250">
+          <caret line="16" column="0" lean-forward="true" selection-start-line="16" selection-start-column="0" selection-end-line="16" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#20#0" expanded="true" />
           </folding>
         </state>
       </provider>
