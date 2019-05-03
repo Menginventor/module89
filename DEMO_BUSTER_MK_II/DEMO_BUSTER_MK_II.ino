@@ -351,7 +351,8 @@ void setup() {
   Serial.println(F("System Reset!"));
   Serial.println(F("RST"));
   Serial.print(F("CON : "));
-  Serial.println(MCUSR);
+  byte rst_cause = MCUSR;
+  Serial.println(rst_cause,BIN);
   pinMode(STATUS_LED_PIN, OUTPUT);
   motor_w.pulse_period = 4000;
   motor_z.pulse_period = 1000;

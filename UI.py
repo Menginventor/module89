@@ -16,6 +16,7 @@ serial_port =  serial.Serial()
 serial_done_flag = False
 class Serial_RX(QtCore.QThread):
     Serial_signal = pyqtSignal()
+    
 
     serial_display = ''
     serial_buffer = ''
@@ -151,6 +152,7 @@ class main_widget(QWidget):
         print('clear log')
         self.Serial_log.setPlainText('')
 
+
     def connection_update(self):
         Serial_Open = serial_port.is_open
         print("Serial Open = ",Serial_Open)
@@ -174,6 +176,16 @@ class main_widget(QWidget):
             print('send : ' + data_to_send)
 
             self.text_for_send.setText('')
+    def GCODE_send(self,GCODE_list):
+        if serial_port.is_open:
+
+            if self.CR.isChecked():
+                data_to_send += '\r'
+            if self.NL.isChecked():
+                data_to_send += '\n'
+            self.GCODE_sender_Thread = GCODE_sender(GCODE_list)
+            self.GCODE_sender_Thread.start()
+
     def serial_error_dialog(self):
         serial_error_msg = QMessageBox()
         serial_error_msg.setIcon(QMessageBox.Warning)
@@ -264,7 +276,6 @@ class main_widget(QWidget):
         return Sending_console_widget
     def warehouse(self):
         Vlayout = QVBoxLayout(self)
-
         self.Manual_input_groupBox = QGroupBox("Manual Put-In")
         layout = QFormLayout()
         self.putInName = QLineEdit()
@@ -281,7 +292,11 @@ class main_widget(QWidget):
         warehouse_widget = QWidget()
         warehouse_widget.setLayout(Vlayout)
         return warehouse_widget
-
+    def warehouse_data(self):
+        Vlayout = QVBoxLayout(self)
+        warehouse_data_tab = QWidget()
+        warehouse_data_tab.setLayout(Vlayout)
+        return warehouse_data_tab
     def setupUI(self):
 
         main_Vlayout = QVBoxLayout(self)
@@ -307,6 +322,9 @@ class main_widget(QWidget):
         self.main_tab.addTab(serial_monitor_tab, "serial_monitor_tab")
 
         self.main_tab.addTab(warehouse_tab, "warehouse_tab")
+
+        warehouse_data_tab = self.warehouse_data()
+        self.main_tab.addTab(warehouse_data_tab, "warehouse_data_tab")
 
         main_Vlayout.addWidget(self.main_tab)
 
