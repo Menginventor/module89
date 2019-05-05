@@ -28,7 +28,7 @@ void G28_Y() {
 
   }
   motor_y.crr_pos = Y_HOMING_POS * Y_STEP_PER_DEG;
-  motor_y.goal_pos = -90*Y_STEP_PER_DEG;
+  motor_y.goal_pos = -110*Y_STEP_PER_DEG;
   motor_y.init_conacc();
   while (motor_y.goal_pos != motor_y.crr_pos) {
     motor_y.update_conacc();
