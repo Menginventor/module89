@@ -1,5 +1,10 @@
 void serial_loop() {
-  static String cmd_str  = "";
+  static String cmd_str;
+  static bool cmd_str_init = false;
+  if(!cmd_str_init){
+    cmd_str.reserve(32);
+    cmd_str_init = true;
+  }
   if(buf_full_flag){
     if(cmd_buf.available() < CMD_BUF_SIZE - 1){
       Serial.println(F("OK"));

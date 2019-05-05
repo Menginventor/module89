@@ -1,5 +1,11 @@
 param_class cmd_class::param(uint8_t n) {
-  return cmd_param[n];
+  if (n >= CMD_MAX_PARAM){
+    Serial.println(F("ERR"));
+    Serial.println(F("cmd_class::param"));
+    param_class nothing;
+    return nothing;
+  }
+  else return cmd_param[n];
 }
 param_class cmd_class::find_param(char _ins) {
 
@@ -26,6 +32,12 @@ void cmd_class::set_cmd(String _cmd_str) {
   String str_hold;
    str_hold.reserve(24);
   for (int i = 0; i < _cmd_str.length(); i++) {
+    if(param_count >= CMD_MAX_PARAM){
+      Serial.println(F("ERR"));
+      Serial.println(F("param_count got over CMD_MAX_PARAM!"));
+      break;
+      
+    }
     char ch = _cmd_str.charAt(i);
 
     if (ch >= 'A' && ch <= 'Z') {
@@ -61,6 +73,10 @@ void cmd_class::set_cmd(String _cmd_str) {
 
 
   param_num = param_count + 1;
+  if(param_num >CMD_MAX_PARAM){
+    Serial.println(F("ERR"));
+      Serial.println(F("param_num >CMD_MAX_PARAM!"));
+  }
 
 }
 bool cmd_class::isValid() {

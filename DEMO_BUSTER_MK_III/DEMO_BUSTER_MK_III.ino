@@ -3,7 +3,7 @@
 
 
 
-#define CMD_MAX_PARAM 6
+#define CMD_MAX_PARAM 8
 #define CMD_BUF_SIZE 4
 /**/
 #define ENA_1 4
@@ -333,9 +333,9 @@ class cmd_buf_class {
 };
 
 int cmd_buf_class::available() {
-  int n = buf_in - buf_out;
-  while (n < 0)n += CMD_BUF_SIZE;
-  return n;
+  //(num%diviser + diviser)%diviser;
+
+  return ((buf_in - buf_out)%CMD_BUF_SIZE + CMD_BUF_SIZE)%CMD_BUF_SIZE;
 }
 cmd_buf_class cmd_buf;
 bool busy_flag = false;
