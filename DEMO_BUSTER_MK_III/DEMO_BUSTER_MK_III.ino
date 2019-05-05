@@ -318,14 +318,16 @@ class cmd_buf_class {
     cmd_class buf[CMD_BUF_SIZE];
     int available();
     void insert(cmd_class cmd) {
+      buf_in = buf_in%CMD_BUF_SIZE;
       buf[buf_in] = cmd;
       buf_in++;
-      if (buf_in >= CMD_BUF_SIZE)buf_in -= CMD_BUF_SIZE;
+    
     }
     cmd_class read() {
+      buf_out = buf_out%CMD_BUF_SIZE;
       cmd_class cmd = buf[buf_out];
       buf_out++;
-      if (buf_out >= CMD_BUF_SIZE)buf_out -= CMD_BUF_SIZE;
+      
       return cmd;
     }
 };
@@ -350,9 +352,8 @@ void setup() {
   Serial.begin(115200);
   Serial.println(F("System Reset!"));
   Serial.println(F("RST"));
-  Serial.print(F("CON : "));
-  byte rst_cause = MCUSR;
-  Serial.println(rst_cause,BIN);
+  disp_reset_condition();
+  
   pinMode(STATUS_LED_PIN, OUTPUT);
   motor_w.pulse_period = 4000;
   motor_z.pulse_period = 1000;
@@ -382,7 +383,21 @@ void setup() {
 
 }
 
-
+void disp_reset_condition() {
+  byte ResetSrc = MCUSR;
+  Serial.begin(115200);
+  if (ResetSrc & 1 << PORF)
+    Serial.println(F("PWR RESET"));
+  if (ResetSrc & 1 << EXTRF)
+    Serial.println(F("EXT RESET"));
+  if (ResetSrc & 1 << BORF)
+    Serial.println(F("BOD RESET"));
+  if (ResetSrc & 1 << WDRF)
+    Serial.println(F("WDT RESET"));
+  if (ResetSrc == 0)
+    Serial.println(F("Unexpected RESET"));
+    MCUSR = 0;
+}
 void put_cmd_buf(String cmd_str) {
   cmd_class crr_cmd;
   crr_cmd.set_cmd(cmd_str);
@@ -409,10 +424,10 @@ void loop() {
   if (millis() - Hearth_beat_timer >= 5000) {
     Hearth_beat_timer = millis();
     Serial.println(F("Hearth beat!"));
-    Serial.print(F("RAM Available : "));
-    Serial.println(freeMemory());
-    Serial.print(F("Core Temp (C) : "));
-    Serial.println(coreTemp());
+    //Serial.print(F("RAM Available : "));
+    //Serial.println(freeMemory());
+    //Serial.print(F("Core Temp (C) : "));
+    //Serial.println(coreTemp());
 
 
   }
